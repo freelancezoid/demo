@@ -1,0 +1,185 @@
+/**
+ * Created by kiwi on 08/12/2016.
+ */
+
+/* jshint globalstrict: true */
+/* global Scope: false*/
+
+'use strict';
+
+describe("Scope",function(){
+    it("can be constructed and used as an object",function(){
+
+        var scope = new Scope();
+        scope.property = 1;
+
+        expect(scope.property).toBe(1);
+    });
+
+    describe("digest",function(){
+
+        var scope;
+
+        beforeEach(function(){
+            scope = new Scope();
+        });
+
+        it("call listener function of a watch on $digest call",function(){
+            var watcherFn = function(){ return 'something as value'; };
+            var listenerFn = jasmine.createSpy();
+            scope.$watch(watcherFn,listenerFn);
+
+            scope.$digest();
+
+            expect(listenerFn).toHaveBeenCalled();
+
+        });
+
+        it("call the watch function with the scope as an argument",function(){
+            var watcherFn = jasmine.createSpy();
+            var listenerFn = function(){};
+
+            scope.$watch(watcherFn,listenerFn);
+
+            scope.$digest();
+
+            expect(watcherFn).toHaveBeenCalledWith(scope);
+        });
+
+        it("call the listener function when the watched value changes",function(){
+            scope.a = 'hello';
+            var counter = 0;
+
+            scope.$watch(
+                function(scope){
+                    return scope.a;
+                },
+                function(newValue, oldValue, scope){
+                    counter++;
+                }
+            );
+
+            expect(counter).toBe(0);
+
+            scope.$digest();
+            expect(counter).toBe(1);
+
+            scope.$digest();
+            expect(counter).toBe(1);
+
+            scope.a+= ' world';
+            expect(counter).toBe(1);
+
+            scope.$digest();
+            expect(counter).toBe(2);
+
+        });
+
+        it("call listener when watch value is undefined",function(){
+            var counter = 0;
+
+            scope.$watch(
+                function(){
+                    return scope.someValue;
+                },
+                function(newValue,oldValue,scope){
+                    counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(counter).toBe(1);
+
+        });
+
+        it("calls listener with new value as old value the first time ",function(){
+            scope.someValue = "tanzania";
+            var oldValueGiven;
+
+            scope.$watch(
+                function(scope){
+                    return scope.someValue;
+                },
+                function(newValue, oldValue, scope){
+                    oldValueGiven = oldValue;
+                }
+            );
+
+            scope.$digest();
+            expect(oldValueGiven).toBe(scope.someValue);
+        });
+
+        it("may have watchers that omit the listener function",function(){
+            var watchFn = jasmine.createSpy().and.returnValue(123);
+            scope.$watch(watchFn);
+
+            scope.$digest();
+
+            expect(watchFn).toHaveBeenCalled();
+        });
+
+        it("trigger chained watchers in the same digest",function(){
+            scope.name = 'Jane';
+
+            scope.$watch(
+                function(scope){
+                    return scope.nameUpper;
+                },
+                function(newValue,oldValue,scope){
+                    if(newValue){
+                        scope.initial = newValue.substring(0,1) + '.';
+                    }
+                }
+            );
+
+            scope.$watch(
+                function(scope){
+                    return scope.name;
+                },
+                function(newValue,oldValue,scope){
+                    if(newValue){
+                        scope.nameUpper =  newValue.toUpperCase();
+                    }
+                }
+            );
+
+            scope.$digest();
+            expect(scope.initial).toBe('J.');
+
+            scope.name = 'Bob';
+
+            scope.$digest();
+            expect(scope.initial).toBe('B.');
+
+        });
+
+        it("",function(){
+            scope.counterA = 0;
+            scope.counterB = 0;
+
+            scope.$watch(
+                function(scope){
+                    return scope.counterA;
+                },
+                function(newValue,oldValue,scope){
+                    scope.counterB++;
+                }
+            );
+
+            scope.$watch(
+                function(scope){
+                    return scope.counterB;
+                },
+                function(newValue,oldValue,scope){
+                    scope.counterA++;
+                }
+            );
+
+            expect((function(){ scope.$digest(); })).toThrow();
+
+        });
+
+    })
+
+
+});
