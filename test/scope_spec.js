@@ -153,7 +153,7 @@ describe("Scope",function(){
 
         });
 
-        it("",function(){
+        it("give up on the watches after 10 iterations",function(){
             scope.counterA = 0;
             scope.counterB = 0;
 
