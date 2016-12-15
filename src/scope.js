@@ -8,6 +8,7 @@ function initWatchVal(){}
 
 function Scope(){
     this.$$watchers = [];
+    this.$$lastDirtyWatch = null;
 }
 
 Scope.prototype.$watch = function(watchFn,listenerFn){
@@ -23,15 +24,20 @@ Scope.prototype.$$digestOnce = function(){
     var self = this;
     var newValue, oldValue, dirty;
 
-    this.$$watchers.forEach(function(watcher){
+    _.forEach(this.$$watchers,function(watcher){
         newValue = watcher.watchFn(self);
         oldValue = watcher.last;
         if( newValue !== oldValue ){
+            self.$$lastDirtyWatch = watcher;
             watcher.last = newValue;
             oldValue = (oldValue === initWatchVal) ? newValue : oldValue;
             watcher.listenerFn(newValue, oldValue, self);
             dirty = true;
         }
+        else if(watcher === self.$$lastDirtyWatch){
+            return false;
+        }
+
     });
 
     return dirty;
@@ -40,6 +46,7 @@ Scope.prototype.$$digestOnce = function(){
 Scope.prototype.$digest = function(){
     var dirty;
     var ttl = 10;
+    this.$$lastDirtyWatch = null;
     do{
         dirty = this.$$digestOnce();
         if(dirty && !(ttl--) ){

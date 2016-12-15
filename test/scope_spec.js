@@ -184,7 +184,7 @@ describe("Scope",function(){
             var watchExecutions = 0;
 
             _.times(100,function(i){
-                scope.watch(
+                scope.$watch(
                     function(scope){
                         watchExecutions++;
                         return scope.array[i];
