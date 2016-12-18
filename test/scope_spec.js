@@ -202,7 +202,29 @@ describe("Scope",function(){
             expect(watchExecutions).toBe(301);
         });
 
-    })
+        it("does not end digest so that new watches are not run",function(){
+            scope.someValue = "hello !";
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope){return scope.someValue;},
+                function(newValue,oldValue,scope){
+
+                    scope.$watch(
+                        function(scope){return scope.someValue;},
+                        function(newValue,oldValue,scope){
+                            scope.counter++;
+                        }
+                    );
+
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+    });
 
 
 });
