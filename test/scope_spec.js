@@ -224,6 +224,28 @@ describe("Scope",function(){
             expect(scope.counter).toBe(1);
         });
 
+        it("compares based on values if enabled",function(){
+            scope.data = {
+                name: "boston"
+            };
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope){return scope.data;},
+                function(){scope.counter++;},
+                true
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+
+            scope.data.lastname = "nia";
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+        });
+
     });
 
 
