@@ -58,11 +58,20 @@ Scope.prototype.$digest = function(){
     while(dirty);
 };
 
+
 Scope.prototype.$$areEqual = function(newValue,oldValue,valueEq){
     if(valueEq){
         return _.isEqual(newValue,oldValue);
     }
     else{
+
+        if( typeof newValue == 'number' &&
+            typeof oldValue == 'number' &&
+            isNaN(newValue) &&
+            isNaN(oldValue) ){
+            return true;
+        }
+
         return newValue === oldValue;
     }
 }
