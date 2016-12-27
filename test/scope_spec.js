@@ -263,7 +263,25 @@ describe("Scope",function(){
 
         });
 
-        it("");
+        it("execute $eval callback and returns it's value",function(){
+            scope.value = 11;
+
+            var value = scope.$eval(function(scope){
+                return scope.value;
+            })
+
+            expect(value).toBe(scope.value);
+        });
+
+        it("passe the second argument of $eval to callback",function(){
+            scope.test = 55;
+            var value = scope.$eval(function(scope,arg){
+                return scope.test + arg;
+            },2);
+            expect(value).toBe(57);
+        });
+
+
 
     });
 
