@@ -281,6 +281,25 @@ describe("Scope",function(){
             expect(value).toBe(57);
         });
 
+        it("execute $apply callback and starts the digest",function(){
+            scope.aValue = 15;
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope){ return scope.aValue;},
+                function(newValue,oldValue,scope){ scope.counter++;}
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$apply(function(scope){
+                scope.aValue = 16;
+            });
+
+            expect(scope.counter).toBe(2);
+        });
+
 
 
     });
