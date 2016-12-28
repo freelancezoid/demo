@@ -52,17 +52,16 @@ Scope.prototype.$digest = function(){
     this.$$lastDirtyWatch = null;
     do{
         while(this.$$asyncQueue.length){
-            var asyncTask = this.$$asyncQueue.pop();
+            var asyncTask = this.$$asyncQueue.shift();
             asyncTask.scope.$eval(asyncTask.expression);
         }
 
-
         dirty = this.$$digestOnce();
-        if(dirty && !(ttl--) ){
+        if( (dirty || this.$$asyncQueue.length)  && !(ttl--) ){
             throw "10 digest iteration reached";
         }
     }
-    while(dirty);
+    while(dirty || this.$$asyncQueue.length);
 };
 
 

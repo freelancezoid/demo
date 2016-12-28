@@ -323,6 +323,62 @@ describe("Scope",function(){
             expect(scope.asyncEvaluatedImmediately).toBe(false);
         });
 
+        it("executes $evalAsync functions added by watch function",function(){
+            scope.aValue = 2;
+            scope.asyncEvaluated = false;
+            scope.$watch(
+                function(scope){
+                    if(!scope.asyncEvaluated){
+                        scope.$evalAsync(function(scope){
+                            scope.asyncEvaluated = true;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function(newValue,oldValue,scope){}
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluated).toBe(true);
+        });
+
+        it("executes $evalAsync functions even when not dirty",function(){
+            scope.aValue = 2;
+            scope.asyncEvaluatedTimes = 0;
+            scope.$watch(
+                function(scope){
+                    if(scope.asyncEvaluatedTimes < 2){
+                        scope.$evalAsync(function(scope){
+                            scope.asyncEvaluatedTimes++;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function(newValue,oldValue,scope){}
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluatedTimes).toBe(2);
+        });
+
+        it("$digest stop when no derty and no async in queue ",function(){
+            scope.data = "hello";
+
+            scope.$watch(
+                function(scope){
+                    scope.$evalAsync(function(scope){
+
+                    });
+                    return scope.data;
+                },
+                function(newValue,oldValue,scope){}
+            );
+
+            expect(function(){scope.$digest()}).toThrow();
+
+
+        });
+
 
 
     });
