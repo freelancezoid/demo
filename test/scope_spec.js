@@ -286,8 +286,8 @@ describe("Scope",function(){
             scope.counter = 0;
 
             scope.$watch(
-                function(scope){ return scope.aValue;},
-                function(newValue,oldValue,scope){ scope.counter++;}
+                function(scope){ return scope.aValue; },
+                function(newValue,oldValue,scope){ scope.counter++; }
             );
 
             scope.$digest();
@@ -298,6 +298,29 @@ describe("Scope",function(){
             });
 
             expect(scope.counter).toBe(2);
+        });
+
+
+        it("execute $evalAsync function later in the same cycle",function(){
+            scope.message = "hello";
+            scope.asyncEvaluated = false;
+            scope.asyncEvaluatedImmediately = false;
+
+            scope.$watch(
+                function(scope){ return scope.message; },
+                function(newValue,oldValue,scope){
+
+                    scope.$evalAsync(function(scope){
+                        scope.asyncEvaluated = true;
+                    });
+
+                    scope.asyncEvaluatedImmediately = scope.asyncEvaluated;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluated).toBe(true);
+            expect(scope.asyncEvaluatedImmediately).toBe(false);
         });
 
 
