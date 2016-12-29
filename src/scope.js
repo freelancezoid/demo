@@ -2,6 +2,7 @@
  * Created by kiwi on 08/12/2016.
  */
 /* jshint globalstrict: true */
+/* global _: false */
 'use strict';
 
 function initWatchVal(){}
@@ -9,7 +10,8 @@ function initWatchVal(){}
 function Scope(){
     this.$$watchers = [];
     this.$$lastDirtyWatch = null;
-    this.$$asyncQueue = []
+    this.$$asyncQueue = [];
+    this.$$phase = null;
 }
 
 Scope.prototype.$watch = function(watchFn,listenerFn,valueEq){
@@ -50,6 +52,7 @@ Scope.prototype.$digest = function(){
     var dirty;
     var ttl = 10;
     this.$$lastDirtyWatch = null;
+    this.$beginPhase('$digest');
     do{
         while(this.$$asyncQueue.length){
             var asyncTask = this.$$asyncQueue.shift();
@@ -58,10 +61,12 @@ Scope.prototype.$digest = function(){
 
         dirty = this.$$digestOnce();
         if( (dirty || this.$$asyncQueue.length)  && !(ttl--) ){
+            this.$clearPhase();
             throw "10 digest iteration reached";
         }
     }
     while(dirty || this.$$asyncQueue.length);
+    this.$clearPhase();
 };
 
 
@@ -80,21 +85,42 @@ Scope.prototype.$$areEqual = function(newValue,oldValue,valueEq){
 
         return newValue === oldValue;
     }
-}
+};
 
 Scope.prototype.$eval = function(expr,locals){
     return expr(this,locals);
-}
+};
 
 Scope.prototype.$apply = function(expression){
+    this.$beginPhase('$apply');
     try {
         return this.$eval(expression);
     } finally {
+        this.$clearPhase();
         this.$digest();
     }
-}
+};
 
 Scope.prototype.$evalAsync = function (expression) {
-    this.$$asyncQueue.push({scope:this,expression:expression});
+    var self = this;
+    if(!self.$$phase && !self.$$asyncQueue.length){
+        setTimeout(function(){
+            if(self.$$asyncQueue.length){
+                self.$digest();
+            }
+        },0);
+    }
+    self.$$asyncQueue.push({scope:self,expression:expression});
+};
+
+Scope.prototype.$beginPhase = function(phase){
+    if(this.$$phase !== null){
+        throw this.$$phase + " is already in progress";
+    }
+    this.$$phase = phase;
+};
+
+Scope.prototype.$clearPhase = function(){
+    this.$$phase = null;
 };
 
